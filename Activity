@@ -1,90 +1,154 @@
+// Order buly kiosk
 const sellers = [
-    { username: 'seller1', password: 'password1' },
-    { username: 'seller2', password: 'password2' }
+  { username: "admin", password: "password" },
 ];
 
-const items = {
-    Pasta: [],
-    Desserts: [],
-    Drinks: []
+//  Menu 
+let menu = {
+  Pizza: [
+    { name: "Spinach Honeyglaze", price: 249 },
+    { name: "Hawaian", price: 249 },
+    { name: "Ham and cheese", price: 249 },
+  ],
+  Desserts: [
+    { name: "Vanilla Icecream", price: 187 },
+    { name: "Cheesecake", price:187 },
+    { name: "Mango float", price: 187 },
+  ],
+  Drinks: [
+    { name: "Coca-Cola", price: 27 },
+    { name: "Orange Juice", price: 39 },
+    { name: "Iced Tea", price: 39 },
+  ],
 };
 
-// to authenticate user
-function authenticate(username, password) {
-    return sellers.some(seller => seller.username === username && seller.password === password);
+// Function to authenticate seller
+function authenticateSeller(username, password) {
+  return sellers.some(
+    (seller) => seller.username === username && seller.password === password
+  );
 }
 
-// to add item
-function addItem(category, name, price) {
-    if (items[category]) {
-        items[category].push({ name, price });
-        console.log(`${name} added to ${category}`);
-    } else {
-        console.log('Invalid category');
+// Function to display menu
+function displayMenu() {
+  for (const category in menu) {
+    console.log(`\n--- ${category} ---`);
+    menu[category].forEach((item, index) => {
+      console.log(`${index + 1}. ${item.name} - $${item.price.toFixed(2)}`);
+    });
+  }
+}
+
+// Function for bubble sort (Example sorting algorithm)
+function bubbleSort(arr, key) {
+  for (let i = 0; i < arr.length; i++) {
+    for (let j = 0; j < arr.length - i - 1; j++) {
+      if (arr[j][key] > arr[j + 1][key]) {
+        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+      }
     }
+  }
 }
 
-// to remove item
-function removeItem(category, name) {
-    if (items[category]) {
-        items[category] = items[category].filter(item => item.name !== name);
-        console.log(`${name} removed from ${category}`);
-    } else {
-        console.log('Invalid category');
-    }
-}
 
-// to display items for customers
-function displayItems() {
-    for (const category in items) {
-        console.log(`Category: ${category}`);
-        items[category].forEach(item => {
-            console.log(`- ${item.name}: $${item.price}`);
-        });
-    }
-}
+// Main program loop
+while (true) {
+  const userType = prompt("Are you a SELLER or CUSTOMER?");
 
-// Main program
-function kiosk() {
-    const userType = prompt('Are you a SELLER or CUSTOMER?').toUpperCase();
+  if (userType.toUpperCase() === "SELLER") {
+    const username = prompt("Enter username:");
+    const password = prompt("Enter password:");
 
-    if (userType === 'SELLER') {
-        const username = prompt('Enter username:');
-        const password = prompt('Enter password:');
-        if (authenticate(username, password)) {
-            let action;
-            do {
-                action = prompt('LOGOUT, ADD or REMOVE an item?').toUpperCase();
-                if (action === 'ADD') {
-                    const category = prompt('Enter category (Pasta, Desserts, Drinks):');
-                    const name = prompt('Enter item name:');
-                    const price = parseFloat(prompt('Enter item price:'));
-                    addItem(category, name, price);
-                } else if (action === 'REMOVE') {
-                    const category = prompt('Enter category (Pasta, Desserts, Drinks):');
-                    const name = prompt('Enter item name:');
-                    removeItem(category, name);
-                }
-            } while (action !== 'LOGOUT');
-        } else {
-            console.log('Authentication failed');
-        }
-    } else if (userType === 'CUSTOMER') {
-        let action;
-        do {
-            displayItems();
-            action = prompt('ORDER, CART, or CANCEL?').toUpperCase();
-            if (action === 'ORDER') {
-                const category = prompt('Enter category (Pasta, Desserts, Drinks):');
-                const name = prompt('Enter item name:');
-                const quantity = parseInt(prompt('Enter quantity:'), 10);
-                console.log(`Ordered ${quantity} of ${name} from ${category}`);
+    if (authenticateSeller(username, password)) {
+      while (true) {
+        const action = prompt("Choose action: LOGOUT, ADD, REMOVE");
+
+        if (action.toUpperCase() === "LOGOUT") break;
+
+        const category = prompt("Enter category to update:");
+
+        if (action.toUpperCase() === "ADD") {
+          while (true) {
+            const itemName = prompt("Enter item name:");
+            const itemPrice = parseFloat(prompt("Enter item price:"));
+
+            if (!isNaN(itemPrice)) {
+              menu[category].push({ name: itemName, price: itemPrice });
+              if (prompt("Continue adding? (yes/no)") !== "yes") break;
+            } else {
+              console.log("Invalid price. Please enter a number.");
             }
-        } while (action !== 'CANCEL');
+          }
+        } else if (action.toUpperCase() === "REMOVE") {
+          while (true) {
+            const itemName = prompt("Enter item name to remove:");
+            menu[category] = menu[category].filter((item) => item.name !== itemName);
+            if (prompt("Continue removing? (yes/no)") !== "yes") break;
+          }
+        }
+      }
     } else {
-        console.log('Invalid user type');
+      console.log("Invalid username or password.");
     }
-}
+  } else if (userType.toUpperCase() === "CUSTOMER") {
+    let cart = [];
+    while (true) {
+      displayMenu();
+      const action = prompt("Choose action: ORDER, CART, CANCEL");
 
-// Start the kiosk program
-kiosk();
+      if (action.toUpperCase() === "CANCEL") break;
+
+      if (action.toUpperCase() === "ORDER") {
+        const category = prompt("Enter category:");
+        const itemIndex = parseInt(prompt(`Enter item number from ${category}:`)) - 1;
+        const quantity = parseInt(prompt("Enter quantity:"));
+
+        if (
+          !isNaN(itemIndex) &&
+          itemIndex >= 0 &&
+          itemIndex < menu[category].length &&
+          !isNaN(quantity) &&
+          quantity > 0
+        ) {
+          cart.push({
+            ...menu[category][itemIndex],
+            quantity,
+          });
+        } else {
+          console.log("Invalid input.");
+        }
+      } else if (action.toUpperCase() === "CART") {
+        while (true) {
+          if (cart.length === 0) {
+            console.log("Your cart is empty.");
+            break;
+          }
+          console.table(cart);
+          const cartAction = prompt("Choose action: PRINT, ADD, REMOVE, CANCEL");
+
+          if (cartAction.toUpperCase() === "PRINT") {
+            let total = 0;
+            bubbleSort(cart, 'name'); //Example of using bubble sort
+            console.table(cart.map(item => ({
+              ItemName: item.name,
+              ItemPrice: item.price,
+              ItemAmount: item.quantity,
+              TotalPrice: item.price * item.quantity
+            })));
+            for (const item of cart) {
+              total += item.price * item.quantity;
+            }
+            console.log(`Total: $${total.toFixed(2)}`);
+            break;
+          } else if (cartAction.toUpperCase() === "ADD") break;
+          else if (cartAction.toUpperCase() === "REMOVE") {
+            const itemNameToRemove = prompt("Enter item name to remove from cart:");
+            cart = cart.filter((item) => item.name !== itemNameToRemove);
+          } else if (cartAction.toUpperCase() === "CANCEL") break;
+        }
+      }
+    }
+  } else {
+    console.log("Invalid user type.");
+  }
+}
