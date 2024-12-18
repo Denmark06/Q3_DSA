@@ -1,0 +1,90 @@
+const sellers = [
+    { username: 'seller1', password: 'password1' },
+    { username: 'seller2', password: 'password2' }
+];
+
+const items = {
+    Pasta: [],
+    Desserts: [],
+    Drinks: []
+};
+
+// to authenticate user
+function authenticate(username, password) {
+    return sellers.some(seller => seller.username === username && seller.password === password);
+}
+
+// to add item
+function addItem(category, name, price) {
+    if (items[category]) {
+        items[category].push({ name, price });
+        console.log(`${name} added to ${category}`);
+    } else {
+        console.log('Invalid category');
+    }
+}
+
+// to remove item
+function removeItem(category, name) {
+    if (items[category]) {
+        items[category] = items[category].filter(item => item.name !== name);
+        console.log(`${name} removed from ${category}`);
+    } else {
+        console.log('Invalid category');
+    }
+}
+
+// to display items for customers
+function displayItems() {
+    for (const category in items) {
+        console.log(`Category: ${category}`);
+        items[category].forEach(item => {
+            console.log(`- ${item.name}: $${item.price}`);
+        });
+    }
+}
+
+// Main program
+function kiosk() {
+    const userType = prompt('Are you a SELLER or CUSTOMER?').toUpperCase();
+
+    if (userType === 'SELLER') {
+        const username = prompt('Enter username:');
+        const password = prompt('Enter password:');
+        if (authenticate(username, password)) {
+            let action;
+            do {
+                action = prompt('LOGOUT, ADD or REMOVE an item?').toUpperCase();
+                if (action === 'ADD') {
+                    const category = prompt('Enter category (Pasta, Desserts, Drinks):');
+                    const name = prompt('Enter item name:');
+                    const price = parseFloat(prompt('Enter item price:'));
+                    addItem(category, name, price);
+                } else if (action === 'REMOVE') {
+                    const category = prompt('Enter category (Pasta, Desserts, Drinks):');
+                    const name = prompt('Enter item name:');
+                    removeItem(category, name);
+                }
+            } while (action !== 'LOGOUT');
+        } else {
+            console.log('Authentication failed');
+        }
+    } else if (userType === 'CUSTOMER') {
+        let action;
+        do {
+            displayItems();
+            action = prompt('ORDER, CART, or CANCEL?').toUpperCase();
+            if (action === 'ORDER') {
+                const category = prompt('Enter category (Pasta, Desserts, Drinks):');
+                const name = prompt('Enter item name:');
+                const quantity = parseInt(prompt('Enter quantity:'), 10);
+                console.log(`Ordered ${quantity} of ${name} from ${category}`);
+            }
+        } while (action !== 'CANCEL');
+    } else {
+        console.log('Invalid user type');
+    }
+}
+
+// Start the kiosk program
+kiosk();
